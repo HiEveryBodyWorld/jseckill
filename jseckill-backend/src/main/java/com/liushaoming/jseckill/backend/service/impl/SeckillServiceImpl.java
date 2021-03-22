@@ -204,8 +204,16 @@ public class SeckillServiceImpl implements SeckillService {
             logger.info("handleInRedis SECKILL_REPEATED. seckillId={},userPhone={}", seckillId, userPhone);
             throw new SeckillException(SeckillStateEnum.REPEAT_KILL);
         }
-        jedis.decr(inventoryKey);
-        jedis.sadd(boughtKey, String.valueOf(userPhone));
+        String inventoryNumber = jedis.lpop(inventoryKey);
+        if(StringUtils.isNotEmpty(inventoryNumber)){
+            jedis.decr(inventoryKey);
+            jedis.sadd(boughtKey, String.valueOf(userPhone));
+        }else{
+            logger.info("handleInRedis SECKILLSOLD_OUT. seckillId={},userPhone={}", seckillId, userPhone);
+            throw new SeckillException(SeckillStateEnum.SOLD_OUT);
+        }
+//         jedis.decr(inventoryKey);
+//         jedis.sadd(boughtKey, String.valueOf(userPhone));
         logger.info("handleInRedis_done");
     }
 
