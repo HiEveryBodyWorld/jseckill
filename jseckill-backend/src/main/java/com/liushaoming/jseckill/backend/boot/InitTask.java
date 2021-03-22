@@ -54,6 +54,14 @@ public class InitTask implements CommandLineRunner {
             jedis.sadd(RedisKey.SECKILL_ID_SET, seckill.getSeckillId() + "");
 
             String inventoryKey = RedisKeyPrefix.SECKILL_INVENTORY + seckill.getSeckillId();
+            List<Integer> inventoryKeys = new ArrayList<>();
+            for(int i=1;i<seckill.getInventory();i++){
+                inventoryKeys.add(i);
+            }
+              /**
+             * 防止高并发超卖问题,将秒杀产品的库存存入list，pop成功则减库存
+             */
+            jedis.rpush(inventoryKey, String.valueOf(inventoryKeys));
             jedis.set(inventoryKey, String.valueOf(seckill.getInventory()));
 
             String seckillGoodsKey = RedisKeyPrefix.SECKILL_GOODS + seckill.getSeckillId();
